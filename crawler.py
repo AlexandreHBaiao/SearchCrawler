@@ -2,8 +2,8 @@ import os
 
 # Crawler for Azure Devops Wiki
 
-# %%
-!pip install azure-identity
+# # %%
+# !pip install azure-identity
 
 # %% Import libraries
 import requests
@@ -30,49 +30,28 @@ project = 'Azure%20Search'
 wiki_id = 'Azure-Search.wiki'
 api_version = '7.1-preview.1'
 recursionLevel = 'full'
-base_url = f"https://msdata.visualstudio.com/{project}/_apis/wiki/wikis/{wiki_id}/pages?recursionLevel={recursionLevel}&path=/&includeContent=True&api-version={api_version}"
+base_url = f"https://msdata.visualstudio.com/{project}/_apis/wiki/wikis/{wiki_id}/pages"
+main_url = f"{base_url}?recursionLevel={recursionLevel}&path=/&includeContent=True&api-version={api_version}"
 
-response = requests.get(base_url, headers=headers)
+response = requests.get(main_url, headers=headers)
 response.raise_for_status()
 wiki_pages = response.json()
 
-
-def get_page_recurively(page):
+contents = []
+def get_page_recursively(page):
     if 'subPages' in page:
         for sub_page in page['subPages']:
-            get_page_recurively(sub_page)
-    print(page['path'])
-    url = page['url'] + f"?recursionLevel=OneLevel&path=/&includeContent=True&api-version={api_version}"
+            get_page_recursively(sub_page)
+    url = f"{base_url}/?path={urllib.parse.quote(page['path'])}&recursionLevel=OneLevel&includeContent=True&api-version={api_version}"
     response = requests.get(url, headers=headers)
     response.raise_for_status()
     page_content = response.json()
-    if page_content['content'] is not None:
-        print(page_content['content'])
+    if response.status_code == 200 and page_content['content'] is not None:
+        contents.append(page_content['content'])
 
+get_page_recursively(wiki_pages)
 
-list = []
-def print_content_of_subpages(page):
-    if 'subPages' in page:
-        for sub_page in page['subPages']:
-            if (':' in sub_page['path']) or ('?' in sub_page['path']) or ('+' in sub_page['path']):
-                continue
-            print_content_of_subpages(sub_page)
-
-    print(page['path'])
-    git_item_url= page['url']
-    parsed_url = urllib.parse.urlparse(git_item_url)
-    response = requests.get(parsed_url.geturl(), headers=headers)
-    response.raise_for_status()
-    page_content = response.json()
-    print(page_content)
-    if 'content' in page_content:
-        list = page_content['content']
-
-print_content_of_subpages(wiki_pages)
-
-print(list[0])
-
-    
+print(contents[0])
 
 
 
