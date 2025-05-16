@@ -30,5 +30,22 @@ index_body = {
   }
 }
 
+# a function to create an index
+def create_index(client, index_name, index_body):
+    try:
+        # Check if the index already exists
+        if client.indices.exists(index=index_name):
+            print(f"Index '{index_name}' already exists.")
+            return
+
+        # Create the index
+        response = client.indices.create(index=index_name, body=index_body)
+        print(f"Index '{index_name}' created successfully.")
+        return response
+    except Exception as e:
+        print(f"Error creating index: {e}")
+
+
+        
 response = client.indices.create(index_name, body=index_body)
 print(response)
