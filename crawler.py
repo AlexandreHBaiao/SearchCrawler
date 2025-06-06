@@ -10,11 +10,15 @@ import requests
 import json
 import urllib.parse
 from azure.identity import DefaultAzureCredential
+from azure.identity import AzureCliCredential
+
+from aisearch import upload_document
 
 # %% Credentials
 
-credential = DefaultAzureCredential()
-# token_response = credential.get_token("https://dev.azure.com/.default")
+#credential = DefaultAzureCredential()
+credential = AzureCliCredential()
+#token_response = credential.get_token("https://dev.azure.com/.default")
 # ba
 token_response = credential.get_token("499b84ac-1321-427f-aa17-267ca6975798/.default")
 access_token = token_response.token
@@ -48,6 +52,7 @@ def get_page_recursively(page):
     page_content = response.json()
     if response.status_code == 200 and page_content['content'] is not None:
         contents.append(page_content['content'])
+        upload_document(page_content['content'])
 
 get_page_recursively(wiki_pages)
 
